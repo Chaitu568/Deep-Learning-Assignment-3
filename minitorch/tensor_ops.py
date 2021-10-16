@@ -40,8 +40,19 @@ def tensor_map(fn):
 
     def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):
         # TODO: Implement for Task 2.2.
-        raise NotImplementedError('Need to implement for Task 2.2')
-
+        # raise NotImplementedError('Need to implement for Task 2.2')
+        # out array size
+        arr_size = np.prod(out_shape)
+        # input index
+        input_index = np.zeros(MAX_DIMS, np.int32)
+        # output index
+        output_index = np.zeros(MAX_DIMS, np.int32)
+        for i in range(arr_size):
+            to_index(i, out_shape, output_index)
+            broadcast_index(output_index, out_shape, in_shape, input_index)
+            pos1 = index_to_position(input_index, in_strides)
+            pos2 = index_to_position(output_index, out_strides)
+            out[pos2] = fn(in_storage[pos1])
     return _map
 
 
@@ -131,7 +142,23 @@ def tensor_zip(fn):
         b_strides,
     ):
         # TODO: Implement for Task 2.2.
-        raise NotImplementedError('Need to implement for Task 2.2')
+        # raise NotImplementedError('Need to implement for Task 2.2')
+        # out array size
+        arr_size = np.prod(out_shape)
+        # index 1
+        index1 = np.zeros(MAX_DIMS, np.int32)
+        # index 2
+        index2 = np.zeros(MAX_DIMS, np.int32)
+        # index 3
+        index3 = np.zeros(MAX_DIMS, np.int32)
+        for i in range(arr_size):
+            to_index(i, out_shape, index3)
+            pos1 = index_to_position(index3, out_strides)
+            broadcast_index(index3, out_shape, a_shape, index1)
+            pos2 = index_to_position(index1, a_strides)
+            broadcast_index(index3, out_shape, b_shape, index2)
+            pos3 = index_to_position(index2, b_strides)
+            out[pos1] = fn(a_storage[pos2], b_storage[pos3])
 
     return _zip
 
@@ -202,7 +229,21 @@ def tensor_reduce(fn):
 
     def _reduce(out, out_shape, out_strides, a_storage, a_shape, a_strides, reduce_dim):
         # TODO: Implement for Task 2.2.
-        raise NotImplementedError('Need to implement for Task 2.2')
+        # raise NotImplementedError('Need to implement for Task 2.2')
+        if reduce_dim is None:
+            out_shape = np.ones(a_shape)
+        size = 1
+        # size define 1
+        for i in a_shape:
+            size = size * i
+        # size increment is caught
+        for i in range(size):
+            index_value = np.array(a_shape)
+            to_index(i, a_shape, index_value)
+            out_ind = np.array(out_shape)
+            broadcast_index(index_value, a_shape, out_shape, out_ind)
+            out[index_to_position(out_ind, out_strides)] = fn(a_storage[index_to_position(index_value, a_strides)],
+                                                              out[index_to_position(out_ind, out_strides)])
 
     return _reduce
 
